@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}MeteoSource API{% endblock %}
+
+{% block content %}
+
+    <h1 class="text-center">MeteoSource API</h1>
+    <div class="container">
+        <div class= "row">
+            <div class="col-md-6">
+                <div class="p-5 my-4 bg-light rounded-3">
+                    <h3 class="pb-3">Description</h3>
+                    <p>
+                        Use open data for weather forecast from API online.  
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-5 my-4 bg-light rounded-3">
+                    <h3 class="pb-3">open data API</h3> 
+                    <p><a href="https://api.meteo-concept.com/">météo-concept</a></p>
+                    <p><a href="https://open-meteo.com/">open-meteo</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

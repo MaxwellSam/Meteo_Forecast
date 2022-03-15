@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}MeteoSource Interface{% endblock %}
+
+{% block content %}
+
+    <h1 class="text-center">MeteoSource Interface</h1>
+    <div class="container">
+        <div class= "row">
+            <div class="col-md-6">
+                <div class="p-5 my-4 bg-light rounded-3">
+                    <h3 class="p3">Station</h3>
+                    <p>
+                        <label for="station_selection">Station selected</label>
+                        <select id="station_selection" name="station_selected">
+                           {% for station in stations %}
+                           <option value='{{station}}'>{{station.name}}</option>
+                           {% endfor %}
+                         </select>
+                    </p>
+                    <p id="info_station"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js_file %} 
+    <script src="{{url_for('static',filename='/js/interface.js')}}"></script>
+{% endblock %}
