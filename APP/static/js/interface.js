@@ -9,32 +9,51 @@
 
 // ------------------------ local files -----------------------------
 
-fetch('../source_files/stations.json')
-.then(response => {
-    return response.json()
-})
-.then(jsondata => console.log(jsondata))
-
-// station_json = require("{url_for('static',filename='/static/source_files/stations.json')}");
-
-// console.log(station_json)
 
 // -------------------------- inputs --------------------------------
 
-var station_selected = document.getElementById("station_selection");
-var station = station_selected.options[station_selected.selectedIndex].value //.replaceAll('\'', '\"');
+var station_selection = document.getElementById("station_selection");
+var API_selection = document.getElementById("API_selection");
+var station = station_selection.options[station_selection.selectedIndex].value
+var onlineAPI = API_selection.options[API_selection.selectedIndex].value 
 
-console.log(station)
+// ------------------------ DataFrames -------------------------------
 
-// test = JSON.parse(station)
+class Forecast {
+    // inputs
+    station_selection = document.getElementById("station_selection");
+    API_selection = document.getElementById("API_selection");
+    // attributes
+    station_id;
+    api_id;
+    url; 
+    data;
+    // data
+    response;
 
-// console.log(test)
+    constructor(){
+        this.station_id = station_selection.options[station_selection.selectedIndex].value;
+        this.api_id = API_selection.options[API_selection.selectedIndex].value;
+        this.url = this.generate_url();
+        this.response = this.get_data_forecast();
+    }
 
+    generate_url (){
+        this.url = window.origin + `/API/${this.station_id}/forecast?station=${this.station_id}`
+    } 
+
+    fetch_forecast (){
+        this.response = fetch(this.url);
+        
+    }
+}
+
+class Graph{
+    params = document.getElementById("params")
+}
 
 // -------------------------- outputs --------------------------------
 
-const info_station = document.getElementById("info_station");
+var station_info = document.getElementById("station_info");
+var data_API = document.getElementById("data_API");
 
-info_station.innerHTML = `<b>Latitude:</b> ${station}<br><b>Longitude:</b> ${station}`
-
-// info_station.innerHTML = `<code>${station_selected}</code>`

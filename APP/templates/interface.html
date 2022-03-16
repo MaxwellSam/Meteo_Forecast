@@ -3,24 +3,46 @@
 {% block title %}MeteoSource Interface{% endblock %}
 
 {% block content %}
-
-    <h1 class="text-center">MeteoSource Interface</h1>
     <div class="container">
         <div class= "row">
-            <div class="col-md-6">
-                <div class="p-5 my-4 bg-light rounded-3">
-                    <h3 class="p3">Station</h3>
-                    <p>
-                        <label for="station_selection">Station selected</label>
-                        <select id="station_selection" name="station_selected">
-                           {% for station in stations %}
-                           <option value='{{station}}'>{{station.name}}</option>
-                           {% endfor %}
-                         </select>
-                    </p>
-                    <p id="info_station"></p>
+
+            <div class="col-md-3">
+                <!-- PARAMETERS -->
+                <div class="p-3 my-4 bg-light rounded-3">
+                    <!-- <h1 class="text-center">Parameters</h1> -->
+                    <form id="params">
+                        <p>
+                            <h4 class="p3">Station</h3>
+                            <!-- <label for="station_selection">Station selected</label> -->
+                            <select id="station_selection" name="id_station">
+                               {% for station in stations %}
+                               <option value='{{station.id}}'>{{station.name}}</option>
+                               {% endfor %}
+                            </select>
+                            <!-- <p id="station_info"></p> -->
+                        </p>
+                        <p>
+                            <h4 class="p3">API online</h3>
+                            <select id="API_selection" name="id_API">
+                               {% for api in online_api %}
+                               <option value='{{api.id}}'>{{api.name}}</option>
+                               {% endfor %}
+                            </select>
+                            <div id="data_API"></div>
+                        </p>
+                    </form>
+                    <button id="refrech_param" type="submit">refresh</button>
                 </div>
             </div>
+
+            <div class="col-md-9">
+                <div class="p-3 my-4 bg-light rounded-3">
+                    <label for="forecast_parameters_selection">parameters</label>
+                    <select name="forecast_parameter" id="forecast_parameters_selection"></select>
+                    <div id="graph" class="w-100"></div>
+                </div>
+            </div>
+
         </div>
     </div>
 

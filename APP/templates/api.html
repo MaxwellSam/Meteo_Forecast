@@ -18,8 +18,16 @@
             <div class="col-md-6">
                 <div class="p-5 my-4 bg-light rounded-3">
                     <h3 class="pb-3">open data API</h3> 
-                    <p><a href="https://api.meteo-concept.com/">météo-concept</a></p>
-                    <p><a href="https://open-meteo.com/">open-meteo</a></p>
+                    <p>
+                        Météo-Concept 
+                        <a href="https://api.meteo-concept.com/">API website</a>
+                        <a href="{{url_for('forecast', online_api='meteo-concept')}}">Forecast</a>
+                    </p>
+                    <p>
+                        Open-Meteo
+                        <a href="https://open-meteo.com/">API website</a>
+                        <a href="{{url_for('forecast', online_api='open-meteo')}}?lat={{}}">Forecast</a>
+                    </p>
                 </div>
             </div>
         </div>
