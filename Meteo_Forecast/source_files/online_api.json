@@ -1,0 +1,46 @@
+{
+    "API": [
+        {
+            "id":"meteoConcept",
+            "name": "meteo-concept", 
+            "link": "https://api.meteo-concept.com/",
+            "url_base": "https://api.meteo-concept.com/api/", 
+            "url_forecast":"https://api.meteo-concept.com/api/forecast/daily?token=1e2e5883e15615e81b09e24a0f2d5ed0f39acc7af3bb6c5687c3975fed43bd82&latlng=LAT%2CLONG",
+            "parameters":{
+                "daily": {
+                    "precip":"rr10",
+                    "proba_precip":"probarain", 
+                    "temp_min":"tmin", 
+                    "temp_max":"tmax", 
+                    "etp":"etp", 
+                    "date":"datetime"
+                },
+                "hourly": null
+            },
+            "token":"1e2e5883e15615e81b09e24a0f2d5ed0f39acc7af3bb6c5687c3975fed43bd82"
+        },
+        {
+            "id":"openMeteo",
+            "name": "open-meteo",
+            "link": "https://open-meteo.com/", 
+            "url_base": "https://api.open-meteo.com/v1/", 
+            "url_forecast":"https://api.open-meteo.com/v1/forecast?latitude=LAT&longitude=LONG&hourly=temperature_2m,precipitation,evapotranspiration&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Europe%2FBerlin",
+            "parameters":{
+                "daily":{
+                    "precip":"precipitation_sum",
+                    "temp_max":"temperature_2m_max",
+                    "temp_min":"temperature_2m_min", 
+                    "date":"time"
+                },
+                "hourly":{
+                    "precip":"precipitation",
+                    "temp":"temperature_2m",
+                    "etp":"evapotranspiration", 
+                    "date":"time"
+                }
+            },
+            "token":null
+        }
+
+    ]
+}
