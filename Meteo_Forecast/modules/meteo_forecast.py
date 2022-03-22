@@ -9,6 +9,7 @@ Date: 03/2022
 # imports 
 
 from os import sep
+from matplotlib.pyplot import title
 import requests
 import json
 import pandas as pd
@@ -96,6 +97,8 @@ class MeteoConcept(forecast):
         self.df_daily = df[self.api_info["parameters"]["daily"].values()]
         # rename columns
         self.df_daily = self.df_daily.rename(columns = dict((v, k) for k, v in self.api_info["parameters"]["daily"].items()))
+        # converte date to dateTime
+        self.df_daily.date = pd.to_datetime(self.df_daily.date)
 
     def save(self, path):
         path += self.id_api + "_" + self.date_init 
@@ -178,6 +181,11 @@ class OpenMeteo(forecast):
         # creat dataframes
         self.creat_dataframe()
     
+    def add_daily_etp(self):
+        df_etp_hourly = self.df_hourly[['etp', 'date']]
+        df_etp_daily = df_etp_hourly.resample('D', on='date').sum()
+        self.df_daily = self.df_daily.merge(df_etp_daily, on='date')
+    
     def creat_dataframe(self):
         json_data = json.loads(self.response.text)
         # select forecast data from json response and convert to dataframe
@@ -186,6 +194,11 @@ class OpenMeteo(forecast):
         # rename columns 
         self.df_daily = self.df_daily.rename(columns = dict((v, k) for k, v in self.api_info["parameters"]["daily"].items()))
         self.df_hourly = self.df_hourly.rename(columns = dict((v, k) for k, v in self.api_info["parameters"]["hourly"].items()))
+        # converte date to dateTime
+        self.df_daily.date = pd.to_datetime(self.df_daily.date)
+        self.df_hourly.date = pd.to_datetime(self.df_hourly.date)
+        # add etp daily
+        self.add_daily_etp()
     
     def save(self, path):
         path += self.id_api + "_" + self.date_init 
@@ -265,12 +278,17 @@ class OpenMeteo(forecast):
         return dict_1, dict_2
 
     def trace_etp(self):
-        dict = {
+        dict_1 = {
             "x" : self.df_hourly["date"],
             "y" : self.df_hourly["etp"],
             "name" : self.id_api + " etp (hourly)"
         }
-        return [dict]
+        dict_2 = {
+            "x" : self.df_daily["date"],
+            "y" : self.df_daily["etp"],
+            "name" : self.id_api + " etp (daily)"
+        }
+        return dict_1, dict_2
     
 
 
@@ -279,7 +297,11 @@ class OpenMeteo(forecast):
 class lineChart:
 
     def __init__(self, forecast_obj_list, param):
-        self.fig = go.Figure()
+        self.fig = go.Figure(
+            layout=go.Layout(
+                title=go.layout.Title(text="Evolution of "+param)
+            )
+        )
         # print(type(self.fig))
         # print(self.fig)
         
@@ -295,6 +317,10 @@ class lineChart:
                 y = trace["y"],
                 name = trace["name"]
             ))
+
+        self.fig.update_xaxes(title_text='date')
+        self.fig.update_yaxes(title_text=param)
+
 
 
 

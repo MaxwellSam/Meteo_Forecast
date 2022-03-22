@@ -16,7 +16,7 @@ import pandas as pd
 ## setup working dir and path to files
 
 wd = os.getcwd()
-path_source_files = "./Meteo_Forecast/source_files/" # Enter path to source file directory from curent dir where python program is exectuted
+path_source_files = "/Meteo_Forecast/source_files/" # Enter path to source file directory from curent dir where python program is exectuted
 
 ## -------- Sations infos -------- ##
 
@@ -40,4 +40,10 @@ online_api_info = online_api_json["API"]
 
 # ===================== Save forecast data ===================== #
 
-path_folder_csv = "./Meteo_Forecast/forecast_data/"
+path_folder_csv = wd+"/Meteo_Forecast/forecast_data/"
+# last forecast directory
+path_last_forecast = path_folder_csv+"last_forecasts/"
+# archive directory
+path_archive = path_folder_csv+"archive/"
+# images directory
+path_images = path_folder_csv+"img/"
