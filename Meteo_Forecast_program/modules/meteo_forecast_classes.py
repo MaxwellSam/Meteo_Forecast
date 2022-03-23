@@ -132,7 +132,7 @@ class MeteoConcept(forecast):
         Save dataframe in csv format at the specific path as "meteoConcept_{DATE}_{FORECAST TYPE}.csv"
         """
         path += self.id_api + "_" + self.station_info['id'] + "_" + self.date_init 
-        self.df_daily.to_csv(os.path.normpath(path+"_daily.csv"), sep=';', index=True)
+        self.df_daily.to_csv(os.path.normpath(path+"_daily.csv"), sep=',', index=True)
 
     # ------------------ trace graph -----------------------
 
@@ -233,9 +233,9 @@ class OpenMeteo(forecast):
         # add date forecast to file name
         path += self.id_api + "_" + self.station_info['id'] + "_" + self.date_init
         # save daily forecast 
-        self.df_daily.to_csv(os.path.normpath(path+"_daily.csv"), sep=';', index=True)
+        self.df_daily.to_csv(os.path.normpath(path+"_daily.csv"), sep=',', index=True)
         # save hourly forecast
-        self.df_hourly.to_csv(os.path.normpath(path+"_hourly.csv"), sep=';', index=True)
+        self.df_hourly.to_csv(os.path.normpath(path+"_hourly.csv"), sep=',', index=True)
     
     # ------------------ trace graph -----------------------
 
