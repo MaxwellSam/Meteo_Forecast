@@ -9,8 +9,6 @@ Date: 03/2022
 # imports 
 
 import os 
-from matplotlib.pyplot import title
-import requests
 import json
 import pandas as pd
 from datetime import datetime
