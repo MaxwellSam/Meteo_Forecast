@@ -18,7 +18,6 @@ import pandas as pd
 # wd = os.getcwd().split("Meteo_Forecast")[0]
 wd = os.getcwd() #.path.abspath(os.getcwd()) # os.getcwd()
 os.chdir(wd)
-print("\n", wd, "\n")
 # path_source_files = "Meteo_Forecast\Meteo_Forecast_program\source_files\\" # Enter path to source file directory from curent dir where python program is exectuted
 path_source_files = "/Meteo_Forecast_program/source_files/" # Enter path to source file directory from curent dir where python program is exectuted
 

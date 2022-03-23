@@ -41,8 +41,6 @@ def load_visualization(list_forecast_obj, station_id):
     date = list_forecast_obj[0].date_init
     path_last_img = var.path_last_forecast+"img/{}/".format(station_id)
     path_archive_img = var.path_archive+"img/{}/".format(station_id)
-    # file management
-    # tb.move_dir_content(path_last_img, path_archive_img)
     # Trace graphs
     graph_temp = forecast.lineChart(list_forecast_obj,"temp")
     graph_precip = forecast.lineChart(list_forecast_obj,"precip")
@@ -75,37 +73,7 @@ def load_forecasts_all_stations():
     for station_id in list_stations_id:
         load_forecasts(station_id)
 
-# def load_forecasts(station_id):
-#     """
-#     Load OpenMeteo and MeteoConcept forecasts, save data and visualisations. 
-#     """
-#     path_last_forecast_openMeteo = var.path_last_forecast+"openMeteo/"+station_id+"/"
-#     path_archive_openMeteo = var.path_archive+"openMeteo/"+station_id+"/"
-#     path_last_forecast_meteoConcept = var.path_last_forecast+"meteoConcept/"+station_id+"/"
-#     path_archive_meteoConcept = var.path_archive+"meteoConcept/"+station_id+"/"
-#     # clean dir last forecast
-#     tb.move_dir_content(path_last_forecast_openMeteo, path_archive_openMeteo)
-#     tb.move_dir_content(var.path_last_forecast+"meteoConcept/", var.path_archive+"meteoConcept/")
-#     # Forecast classes
-#     meteoConcept = forecast.MeteoConcept(station_id)
-#     openMeteo = forecast.OpenMeteo(station_id)
-#     # Save forecasts
-#     openMeteo.save(var.path_last_forecast+"openMeteo/"+station_id+"/")
-#     meteoConcept.save(var.path_last_forecast+"meteoConcept/"+station_id+"/")
-#     # Trace graphs
-#     graph_temp = forecast.lineChart([openMeteo, meteoConcept],"temp")
-#     graph_precip = forecast.lineChart([openMeteo, meteoConcept],"precip")
-#     graph_etp = forecast.lineChart([openMeteo, meteoConcept],"etp")
-#     # Save graphs
-#     graph_temp.fig.write_image(var.path_images+"temp.png")
-#     graph_precip.fig.write_image(var.path_images+"precip.png")
-#     graph_etp.fig.write_image(var.path_images+"etp.png")
-
-
-
 # =============== main ==============
-
-# --------------- load forecast -----------------
 
 load_forecasts_all_stations()
 
