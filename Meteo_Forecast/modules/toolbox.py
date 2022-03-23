@@ -7,7 +7,20 @@ Date: 03/2022
 """
 ## import ##
 import os
+import requests
 
+# ----------------- methods ----------------------
+
+# ---------------- fetch data --------------------
+
+def fetch_url(url):
+    try:
+        return requests.get(url, verify=False)
+    except requests.exceptions.RequestException as e:
+        raise SystemExit(e)
+
+
+# -------------- files management -----------------
 
 def move_dir_content(path_old_dir, path_new_dir):
     all_files = os.listdir(path_old_dir)

@@ -15,7 +15,7 @@ import os
 
 ## setup working dir and path to files
 
-wd = os.getcwd()
+wd = os.getcwd() 
 path_source_files = "/APP/static/source_files/"
 
 ## -------- Sations infos -------- ##

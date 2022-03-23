@@ -20,16 +20,22 @@ import plotly.graph_objects as go
 ## local imports
 
 import modules.variables as var
+import modules.toolbox as tb
 
 
 # ================== Forecast Classes ================== #
 
 class forecast:
     def fetch_forecast(self):
-        try:
-            self.response = requests.get(self.url, verify=False)
-        except requests.exceptions.RequestException as e:
-            raise SystemExit(e)
+        """
+        Request API and get response. 
+        """
+    #     try:
+    #         self.response = requests.get(self.url, verify=False)
+    #     except requests.exceptions.RequestException as e:
+    #         raise SystemExit(e)
+        self.response = tb.fetch_url(self.url)
+    
 
     # -------------------- save info -----------------------
 
@@ -39,12 +45,24 @@ class forecast:
     # ---------------- Load infos methods ------------------
 
     def load_api_info(self, api_id):
+        """
+        Load info API
+
+        Param:
+            api_id : id api in json source file (./Meteo_Forecast/source_files/online_api.json) 
+        """
         for api in var.online_api_info:
             if api["id"] == api_id:
                 self.api_info = api
                 break
     
     def load_station_info(self, station_id):
+        """
+        Load info station
+
+        Param:
+            station_id : id station in json source file (./Meteo_Forecast/source_files/stations_json) 
+        """
         for station in var.stations_info:
             if station["id"] == station_id:
                 self.station_info = station
@@ -53,19 +71,17 @@ class forecast:
     # ------------------ url forecast ----------------------
 
     def generate_url(self):
+        """
+        Generate url for requesting the meteo API 
+        """
         self.url = self.api_info["url_forecast"].replace("LAT", str(self.station_info["coordinates"]['lat'])).replace("LONG", str(self.station_info["coordinates"]['long']))
 
     # ------------------ trace graph -----------------------
-
-    # def trace(self, fig, param):
-    #     if param == "temp":
-    #         self.trace_temp(fig)
-    #     elif param == "precip":
-    #         self.trace_precip(fig)
-    #     elif param == "etp":
-    #         self.trace_etp(fig)
     
     def trace(self, param):
+        """
+        Creat trace for graph according to param (temp, precip or etp)
+        """
         if param == "temp":
             return self.trace_temp()
         elif param == "precip":
@@ -75,6 +91,12 @@ class forecast:
 
 
 class MeteoConcept(forecast):
+    """
+    Class for MeteoConcept API forecast.
+    Description: 
+        This class request the API Meteoconcept online and load meteoforecast as pandas Dataframe. 
+        This one could be save as csv and trace created for visualisation. 
+    """
     id_api = "meteoConcept"
 
     def __init__(self, station_id):
@@ -89,7 +111,12 @@ class MeteoConcept(forecast):
         # create dataframes
         self.creat_dataframe()
     
+    # ------------------ dataframe -----------------------
+
     def creat_dataframe(self):
+        """
+        Creat daily forecast dataframe. 
+        """
         json_data = json.loads(self.response.text)
         # select forecast data from json response and convert to dataframe
         df = pd.DataFrame.from_dict(json_data["forecast"])
@@ -100,42 +127,21 @@ class MeteoConcept(forecast):
         # converte date to dateTime
         self.df_daily.date = pd.to_datetime(self.df_daily.date)
 
+    # ----------------- save dataframe -----------------------
+
     def save(self, path):
+        """
+        Save dataframe in csv format at the specific path as "meteoConcept_{DATE}_{FORECAST TYPE}.csv"
+        """
         path += self.id_api + "_" + self.date_init 
         self.df_daily.to_csv(path+"_daily.csv", sep=';', index=True)
 
     # ------------------ trace graph -----------------------
 
-    # def trace_temp(self, fig):
-    #     fig = fig.add_trace(go.Scatter(
-    #         x = self.df_daily["date"],
-    #         y = self.df_daily["temp_min"],
-    #         name = self.id_api + " temp_min"
-    #     ))
-    #     fig = fig.add_trace(go.Scatter(
-    #         x = self.df_daily["date"],
-    #         y = self.df_daily["temp_max"],
-    #         name = self.id_api + " temp_max"
-    #     ))
-    #     return fig
-
-    # def trace_precip(self, fig):
-    #     fig.add_trace(go.Scatter(
-    #         x = self.df_daily["date"],
-    #         y = self.df_daily["precip"],
-    #         name = self.id_api + " precip"
-    #     ))
-    #     return fig
-    
-    # def trace_etp(self, fig):
-    #     fig.add_trace(go.Scatter(
-    #         x = self.df_daily["date"],
-    #         y = self.df_daily["etp"],
-    #         name = self.id_api + " etp"
-    #     ))
-    #     return fig
-
     def trace_temp(self):
+        """
+        Format temperature data for graph trace.  
+        """
         dict_1 = {
             "x" : self.df_daily["date"],
             "y" : self.df_daily["temp_min"],
@@ -149,6 +155,9 @@ class MeteoConcept(forecast):
         return dict_1, dict_2
 
     def trace_precip(self):
+        """
+        Format precipitation data for graph trace.  
+        """
         dict = {
             "x" : self.df_daily["date"],
             "y" : self.df_daily["precip"],
@@ -157,6 +166,9 @@ class MeteoConcept(forecast):
         return [dict]
 
     def trace_etp(self):
+        """
+        Format etp data for graph trace.  
+        """
         dict = {
             "x" : self.df_daily["date"],
             "y" : self.df_daily["etp"],
@@ -167,9 +179,16 @@ class MeteoConcept(forecast):
     
 
 class OpenMeteo(forecast):
+    """
+    Class for OpenMeteo API forecast.
+    Description: 
+        This class request the API OpenMeteo online and load meteo forecast as pandas Dataframe. 
+        This one could be save as csv and trace created for visualisation. 
+    """
     id_api = "openMeteo"
 
     def __init__(self, station_id):
+        # save initialization date 
         self.save_date_forecast()
         # load info
         self.load_api_info(self.id_api)
@@ -182,11 +201,20 @@ class OpenMeteo(forecast):
         self.creat_dataframe()
     
     def add_daily_etp(self):
+        """
+        Calcul and add etp to daily data
+        """
+        # extract etp from hourly data
         df_etp_hourly = self.df_hourly[['etp', 'date']]
+        # sum etp values for same days to create daily forecast
         df_etp_daily = df_etp_hourly.resample('D', on='date').sum()
+        # add daily etp to daily dataframe
         self.df_daily = self.df_daily.merge(df_etp_daily, on='date')
     
     def creat_dataframe(self):
+        """
+        Creat hourly and daily forecasts dataframes. 
+        """
         json_data = json.loads(self.response.text)
         # select forecast data from json response and convert to dataframe
         self.df_daily = pd.DataFrame.from_dict(json_data["daily"])
@@ -201,52 +229,22 @@ class OpenMeteo(forecast):
         self.add_daily_etp()
     
     def save(self, path):
-        path += self.id_api + "_" + self.date_init 
+        """
+        Save dataframes in csv format at the specific path as "OpenMeteo_{DATE}_{FORECAST TYPE}.csv"
+        """
+        # add date forecast to file name
+        path += self.id_api + "_" + self.date_init
+        # save daily forecast 
         self.df_daily.to_csv(path+"_daily.csv", sep=';', index=True)
+        # save hourly forecast
         self.df_hourly.to_csv(path+"_hourly.csv", sep=';', index=True)
     
     # ------------------ trace graph -----------------------
 
-    # def trace_temp(self, fig):
-    #     fig = fig.add_trace(go.Scatter(
-    #         x = self.df_daily["date"],
-    #         y = self.df_daily["temp_min"],
-    #         name = self.id_api + " temp_min"
-    #     ))
-    #     fig = fig.add_trace(go.Scatter(
-    #         x = self.df_daily["date"],
-    #         y = self.df_daily["temp_max"],
-    #         name = self.id_api + " temp_max"
-    #     ))
-    #     fig = fig.add_trace(go.Scatter(
-    #         x = self.df_hourly["date"],
-    #         y = self.df_hourly["temp"],
-    #         name = self.id_api + " temp (hourly)"
-    #     ))
-    #     return fig
-
-    # def trace_precip(self, fig):
-    #     fig = fig.add_trace(go.Scatter(
-    #         x = self.df_daily["date"],
-    #         y = self.df_daily["precip"],
-    #         name = self.id_api + " precip (daily)"
-    #     ))
-    #     fig = fig.add_trace(go.Scatter(
-    #         x = self.df_hourly["date"],
-    #         y = self.df_hourly["precip"],
-    #         name = self.id_api + " precip (hourly)"
-    #     ))
-    #     return fig
-
-    # def trace_etp(self, fig):
-    #     fig = fig.add_trace(go.Scatter(
-    #         x = self.df_hourly["date"],
-    #         y = self.df_hourly["etp"],
-    #         name = self.id_api + " etp (hourly)"
-    #     ))
-    #     return fig
-
     def trace_temp(self):
+        """
+        Format temperature data for graph trace.  
+        """
         dict_1 = {
             "x":self.df_daily["date"],
             "y":self.df_daily["temp_min"],
@@ -265,6 +263,9 @@ class OpenMeteo(forecast):
         return dict_1, dict_2, dict_3
 
     def trace_precip(self):
+        """
+        Format precipitation data for graph trace.  
+        """
         dict_1 = {
             "x" : self.df_daily["date"],
             "y" : self.df_daily["precip"],
@@ -278,6 +279,9 @@ class OpenMeteo(forecast):
         return dict_1, dict_2
 
     def trace_etp(self):
+        """
+        Format etp data for graph trace.  
+        """
         dict_1 = {
             "x" : self.df_hourly["date"],
             "y" : self.df_hourly["etp"],
