@@ -10,32 +10,25 @@ The purpose was to find meteorological forecasts in open data online for automat
 
 ```
 .
-| _ APP
 |
-| _ Meteo_Forecast_Program
-    |
-    | _ forecast_data
-    |   | _ archive 
-    |   | _ last_forecasts
-    |
-    | _ modules
-    |   | _ meteo_forecast_classes.py
-    |   | _ toolbox.py
-    |   | _ variables.py
-    |
-    | _ source_files 
-    |   | _ online_api.json
-    |   | _ stations.json
-    |
-    | _ meteo_forecast.py
+| _ forecast_data
+|   | _ archive 
+|   | _ last_forecasts
+|
+| _ modules
+|   | _ meteo_forecast_classes.py
+|   | _ toolbox.py
+|   | _ variables.py
+|
+| _ source_files 
+|   | _ online_api.json
+|   | _ stations.json
+|
+| _ meteo_forecast.py
 
 ```
 
-## APP 
-
-Work in progress ...
-
-## Meteo_Forecast_program
+## Meteo_Forecast program 
 
 Program to save and archive  meteo forecasts data from online APIs. This program request the following APIs:
 - [OpenMeteo](https://open-meteo.com/en), forecast in open data for 7 days.  
@@ -58,7 +51,7 @@ The following packages need to be installed before running the program:
 
 ### Run the program 
 
-Be sure to be located at the project root `/Meteo_Forecast/.` and run the command line `python3 Meteo_Forecast_Program/meteo_forecast.py`
+Be sure to be located at the project root `/Meteo_Forecast/.` and run the command line `python3 meteo_forecast.py`
 
 
 
