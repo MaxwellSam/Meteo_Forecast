@@ -8,10 +8,12 @@ Date: 03/2022
 
 # imports 
 
+from cmath import nan
 import os 
 import json
 import pandas as pd
 from datetime import datetime
+import numpy as np
 
 import plotly.graph_objects as go 
 
@@ -124,6 +126,8 @@ class MeteoConcept(forecast):
         self.df_daily = self.df_daily.rename(columns = dict((v, k) for k, v in self.api_info["parameters"]["daily"].items()))
         # converte date to dateTime
         self.df_daily.date = pd.to_datetime(self.df_daily.date)
+        # replace negative etp value by NaN value
+        self.df_daily[self.df_daily['etp'] < 0] = np.NaN
 
     # ----------------- save dataframe -----------------------
 
@@ -131,8 +135,11 @@ class MeteoConcept(forecast):
         """
         Save dataframe in csv format at the specific path as "meteoConcept_{DATE}_{FORECAST TYPE}.csv"
         """
-        path += self.id_api + "_" + self.station_info['id'] + "_" + self.date_init 
-        self.df_daily.to_csv(os.path.normpath(path+"_daily.csv"), sep=',', index=True)
+        f_daily = "{}_{}_{}_daily.csv".format(self.id_api, self.station_info['id'], self.date_init)
+        # path += self.id_api + "_" + self.station_info['id'] + "_" + self.date_init
+        print("# Save file '{}' ... ".format(f_daily), end="") 
+        self.df_daily.to_csv(os.path.normpath(path+f_daily), sep=',', index=True)
+        print("Done")
 
     # ------------------ trace graph -----------------------
 
@@ -167,9 +174,19 @@ class MeteoConcept(forecast):
         """
         Format etp data for graph trace.  
         """
+        # df_d = self.df_daily.drop(self.df_daily[self.df_daily["etp"] < 0].index, inplace=True)
+        df_d = self.df_daily.dropna() # .drop(self.df_daily.index[self.df_daily["etp"] < 0].tolist(), inplace=True)
+        print("\n  meteoConcept\n", self.df_daily, "\n")
+        # print("\n meteoConcept\n", self.df_daily.index[self.df_daily["etp"] < 0].tolist(), "\n")
+        # print("\n", df_d, "\n")
+        # dict = {
+        #     "x" : self.df_daily["date"],
+        #     "y" : self.df_daily["etp"],
+        #     "name" : self.id_api + " etp"
+        # }
         dict = {
-            "x" : self.df_daily["date"],
-            "y" : self.df_daily["etp"],
+            "x" : df_d["date"],
+            "y" : df_d["etp"],
             "name" : self.id_api + " etp"
         }
         return [dict]
@@ -225,17 +242,26 @@ class OpenMeteo(forecast):
         self.df_hourly.date = pd.to_datetime(self.df_hourly.date)
         # add etp daily
         self.add_daily_etp()
+        # replace negative etp value by NaN value
+        self.df_daily[self.df_daily['etp'] < 0] = np.NaN
+        self.df_hourly[self.df_hourly['etp'] < 0] = np.NaN
     
     def save(self, path):
         """
         Save dataframes in csv format at the specific path as "OpenMeteo_{DATE}_{FORECAST TYPE}.csv"
         """
+        f_daily = "{}_{}_{}_daily.csv".format(self.id_api, self.station_info['id'], self.date_init)
+        f_hourly = "{}_{}_{}_hourly.csv".format(self.id_api, self.station_info['id'], self.date_init)
         # add date forecast to file name
-        path += self.id_api + "_" + self.station_info['id'] + "_" + self.date_init
+        # path += self.id_api + "_" + self.station_info['id'] + "_" + self.date_init
         # save daily forecast 
-        self.df_daily.to_csv(os.path.normpath(path+"_daily.csv"), sep=',', index=True)
+        print("# Save file '{}' ... ".format(f_daily), end="") 
+        self.df_daily.to_csv(os.path.normpath(path+f_daily), sep=',', index=True)
+        print("Done")
         # save hourly forecast
-        self.df_hourly.to_csv(os.path.normpath(path+"_hourly.csv"), sep=',', index=True)
+        print("# Save file '{}' ... ".format(f_hourly), end="") 
+        self.df_hourly.to_csv(os.path.normpath(path+f_hourly), sep=',', index=True)
+        print("Done")
     
     # ------------------ trace graph -----------------------
 
@@ -280,14 +306,30 @@ class OpenMeteo(forecast):
         """
         Format etp data for graph trace.  
         """
+        df_d = self.df_daily.dropna() # drop(self.df_daily[self.df_daily['etp'] < 0].index, inplace=True)
+        print("\n  openMeteo (daily)\n", self.df_daily, "\n")
+        print("\n  openMeteo (hourly)\n", self.df_hourly, "\n")
+        # print("\n openMeteo\n", self.df_daily[self.df_daily['etp'] < 0].index, "\n")
+        # print("\n", df_d, "\n")
+        df_h = self.df_hourly.dropna() #drop(self.df_hourly[self.df_hourly['etp'] < 0].index, inplace=True)
+        # dict_1 = {
+        #     "x" : self.df_hourly["date"],
+        #     "y" : self.df_hourly["etp"],
+        #     "name" : self.id_api + " etp (hourly)"
+        # }
+        # dict_2 = {
+        #     "x" : self.df_daily["date"],
+        #     "y" : self.df_daily["etp"],
+        #     "name" : self.id_api + " etp (daily)"
+        # }
         dict_1 = {
-            "x" : self.df_hourly["date"],
-            "y" : self.df_hourly["etp"],
+            "x" : df_h["date"],
+            "y" : df_h["etp"],
             "name" : self.id_api + " etp (hourly)"
         }
         dict_2 = {
-            "x" : self.df_daily["date"],
-            "y" : self.df_daily["etp"],
+            "x" : df_d["date"],
+            "y" : df_d["etp"],
             "name" : self.id_api + " etp (daily)"
         }
         return dict_1, dict_2
@@ -299,6 +341,12 @@ class OpenMeteo(forecast):
 class lineChart:
 
     def __init__(self, forecast_obj_list, param):
+        # get info forecast
+        self.date = forecast_obj_list[0].date_init
+        self.station_id = forecast_obj_list[0].station_info['id']
+        # save info
+        self.param = param
+        # init figure
         self.fig = go.Figure(
             layout=go.Layout(
                 title=go.layout.Title(text="Evolution of "+param)
@@ -309,10 +357,13 @@ class lineChart:
         
         # for obj in forecast_obj_list:
         #     self.fig = obj.trace(self.fig, param)
+
+        # generate traces
         list_trace = []
         for obj in forecast_obj_list:
             list_trace.extend(obj.trace(param))
 
+        # add traces to figure
         for trace in list_trace:
             self.fig = self.fig.add_trace(go.Scatter(
                 x = trace["x"],
@@ -322,6 +373,13 @@ class lineChart:
 
         self.fig.update_xaxes(title_text='date')
         self.fig.update_yaxes(title_text=param)
+    
+    def save(self, path):
+        f_name = "{}_{}_{}.png".format(self.param, self.station_id, self.date) 
+        path += "{}/{}".format(self.param, f_name) 
+        print("# Save file '{}' ... ".format(f_name), end="") 
+        self.fig.write_image(path)
+        print("Done")
 
 
 

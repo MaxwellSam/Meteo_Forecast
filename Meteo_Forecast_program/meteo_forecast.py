@@ -38,7 +38,6 @@ def load_forecast_api(api_id, station_id):
 
 def load_visualization(list_forecast_obj, station_id):
     # get date forecast 
-    date = list_forecast_obj[0].date_init
     path_last_img = var.path_last_forecast+"img/{}/".format(station_id)
     path_archive_img = var.path_archive+"img/{}/".format(station_id)
     # Trace graphs
@@ -48,13 +47,13 @@ def load_visualization(list_forecast_obj, station_id):
     # Save graphs
     ## for temp
     tb.move_dir_content(path_last_img+"/temp/", path_archive_img+"/temp/")
-    graph_temp.fig.write_image(path_last_img+"/temp/temp_{}.png".format(date))
+    graph_temp.save(path_last_img)
     ## for precip
     tb.move_dir_content(path_last_img+"/precip/", path_archive_img+"/precip/")
-    graph_precip.fig.write_image(path_last_img+"/precip/precip_{}.png".format(date))
+    graph_precip.save(path_last_img)
     ## for etp
     tb.move_dir_content(path_last_img+"/etp/", path_archive_img+"/etp/")
-    graph_etp.fig.write_image(path_last_img+"/etp/etp_{}.png".format(date))
+    graph_etp.save(path_last_img)
 
 def load_forecasts(station_id):
 
