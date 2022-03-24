@@ -9,13 +9,15 @@ Date: 03/2022
 # imports 
 
 from cmath import nan
+from operator import index
 import os 
 import json
 import pandas as pd
 from datetime import datetime
 import numpy as np
 
-import plotly.graph_objects as go 
+import plotly.graph_objects as go
+from pyparsing import col 
 
 ## local imports
 
@@ -40,7 +42,7 @@ class forecast:
     # -------------------- save info -----------------------
 
     def save_date_forecast(self):
-        self.date_init = datetime.now().strftime("%d_%m_%Y_%H")
+        self.date_init = datetime.now().strftime("%Y_%m_%d_%H")
 
     # ---------------- Load infos methods ------------------
 
@@ -135,10 +137,15 @@ class MeteoConcept(forecast):
         """
         Save dataframe in csv format at the specific path as "meteoConcept_{DATE}_{FORECAST TYPE}.csv"
         """
+        # modify date time format
+        # print("\n",self.df_daily.dtypes, "\n")
+        self.df_daily.date = self.df_daily.date.map(lambda d : d.strftime('%Y-%m-%d %H:%M'))
+        # print(self.df_daily.date)
+        # generate file name
         f_daily = "{}_{}_{}_daily.csv".format(self.id_api, self.station_info['id'], self.date_init)
-        # path += self.id_api + "_" + self.station_info['id'] + "_" + self.date_init
+        # save file 
         print("# Save file '{}' ... ".format(f_daily), end="") 
-        self.df_daily.to_csv(os.path.normpath(path+f_daily), sep=',', index=True)
+        self.df_daily.to_csv(os.path.normpath(path+f_daily), sep=',', na_rep="\\N", columns=['date','temp_min', 'temp_max', 'etp', 'precip', 'proba_precip'], index=False)
         print("Done")
 
     # ------------------ trace graph -----------------------
@@ -175,7 +182,7 @@ class MeteoConcept(forecast):
         Format etp data for graph trace.  
         """
         # df_d = self.df_daily.drop(self.df_daily[self.df_daily["etp"] < 0].index, inplace=True)
-        df_d = self.df_daily.dropna() # .drop(self.df_daily.index[self.df_daily["etp"] < 0].tolist(), inplace=True)
+        df_d = self.df_daily.dropna(subset=['etp']) # .drop(self.df_daily.index[self.df_daily["etp"] < 0].tolist(), inplace=True)
         print("\n  meteoConcept\n", self.df_daily, "\n")
         # print("\n meteoConcept\n", self.df_daily.index[self.df_daily["etp"] < 0].tolist(), "\n")
         # print("\n", df_d, "\n")
@@ -242,6 +249,8 @@ class OpenMeteo(forecast):
         self.df_hourly.date = pd.to_datetime(self.df_hourly.date)
         # add etp daily
         self.add_daily_etp()
+        # add proba_precip columns with NaN value
+        self.df_daily["proba_precip"] = np.NaN
         # replace negative etp value by NaN value
         self.df_daily[self.df_daily['etp'] < 0] = np.NaN
         self.df_hourly[self.df_hourly['etp'] < 0] = np.NaN
@@ -250,17 +259,22 @@ class OpenMeteo(forecast):
         """
         Save dataframes in csv format at the specific path as "OpenMeteo_{DATE}_{FORECAST TYPE}.csv"
         """
+        # change date format
+        # self.df_daily.date = self.df_daily.date.dt.strftime('%d-%m-%Y %H:%M')
+        # self.df_hourly.date = self.df_hourly.date.dt.strftime('%d-%m-%Y %H:%M')
+        self.df_daily.date = self.df_daily.date.map(lambda d : d.strftime('%d-%m-%Y %H:%M'))
+        self.df_hourly.date = self.df_hourly.date.map(lambda d : d.strftime('%d-%m-%Y %H:%M'))
+        # generate files name
         f_daily = "{}_{}_{}_daily.csv".format(self.id_api, self.station_info['id'], self.date_init)
         f_hourly = "{}_{}_{}_hourly.csv".format(self.id_api, self.station_info['id'], self.date_init)
-        # add date forecast to file name
-        # path += self.id_api + "_" + self.station_info['id'] + "_" + self.date_init
-        # save daily forecast 
+        # save files
+        ## daily
         print("# Save file '{}' ... ".format(f_daily), end="") 
-        self.df_daily.to_csv(os.path.normpath(path+f_daily), sep=',', index=True)
+        self.df_daily.to_csv(os.path.normpath(path+f_daily), sep=',', na_rep="\\N", columns=['date','temp_min', 'temp_max', 'etp', 'precip', 'proba_precip'], index=False)
         print("Done")
-        # save hourly forecast
+        ## daily
         print("# Save file '{}' ... ".format(f_hourly), end="") 
-        self.df_hourly.to_csv(os.path.normpath(path+f_hourly), sep=',', index=True)
+        self.df_hourly.to_csv(os.path.normpath(path+f_hourly), sep=',', na_rep="\\N", columns=['date','temp', 'etp', 'precip'], index=False)
         print("Done")
     
     # ------------------ trace graph -----------------------
@@ -306,12 +320,12 @@ class OpenMeteo(forecast):
         """
         Format etp data for graph trace.  
         """
-        df_d = self.df_daily.dropna() # drop(self.df_daily[self.df_daily['etp'] < 0].index, inplace=True)
+        df_d = self.df_daily.dropna(subset=['etp']) # drop(self.df_daily[self.df_daily['etp'] < 0].index, inplace=True)
         print("\n  openMeteo (daily)\n", self.df_daily, "\n")
         print("\n  openMeteo (hourly)\n", self.df_hourly, "\n")
         # print("\n openMeteo\n", self.df_daily[self.df_daily['etp'] < 0].index, "\n")
         # print("\n", df_d, "\n")
-        df_h = self.df_hourly.dropna() #drop(self.df_hourly[self.df_hourly['etp'] < 0].index, inplace=True)
+        df_h = self.df_hourly.dropna(subset=['etp']) #drop(self.df_hourly[self.df_hourly['etp'] < 0].index, inplace=True)
         # dict_1 = {
         #     "x" : self.df_hourly["date"],
         #     "y" : self.df_hourly["etp"],

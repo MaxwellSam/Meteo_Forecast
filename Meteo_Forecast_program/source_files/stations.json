@@ -2,10 +2,75 @@
     "stations": [
         {
             "id": "BrenneBrain",
+            "zone":"SESAM",
             "name":"La Brenne - Brain",
             "coordinates": {
                 "lat": 47.46288129783438,
-                "long": 4.504219928340585}
+                "long": 4.504219928340585
+            }
+        },
+        {
+            "id": "JoursLesBaigneux",
+            "zone":"SESAM",
+            "name":"Jours les Baigneux",
+            "coordinates": {
+                "lat": 47.636,
+                "long": 4.596
+            }
+        },
+        {
+            "id": "Montbard",
+            "zone":"SESAM",
+            "name":"Montbard",
+            "coordinates": {
+                "lat": 47.628,
+                "long": 4.33
+            }
+        },
+        {
+            "id": "PouillyEnAuxois",
+            "zone":"SESAM",
+            "name":"Pouilly-en-Auxois",
+            "coordinates": {
+                "lat": 47.251,
+                "long": 4.561
+            }
+        },
+        {
+            "id": "SaintMartinDuMont",
+            "zone":"SESAM",
+            "name":"Saint-Martin-du-Mont",
+            "coordinates": {
+                "lat": 47.4,
+                "long": 4.781
+            }
+        },
+        {
+            "id": "Saulieu",
+            "zone":"SESAM",
+            "name":"Saulieu",
+            "coordinates": {
+                "lat": 47.264,
+                "long": 4.215
+            }
+        },
+        {
+            "id": "SemurEnAuxois",
+            "zone":"SESAM",
+            "name":"Semur-en-Auxois",
+            "coordinates": {
+                "lat": 47.482,
+                "long": 4.34
+            }
+        },
+        {
+            "id": "SaintAndre",
+            "zone":"SESAM",
+            "name":"Saint André",
+            "coordinates": {
+                "lat": 47.488,
+                "long": 4.059
+            }
         }
     ]
 }

@@ -28,7 +28,7 @@ def move_dir_content(path_old_dir, path_new_dir):
         print("# Creat directory '{}' ... ".format(os.path.normpath(path_old_dir)), end="")
         os.makedirs(os.path.normpath(path_old_dir))
         print("Done")
-    if not os.path.exists(os.path.normpath(path_old_dir)):
+    if not os.path.exists(os.path.normpath(path_new_dir)):
         print("# Creat directory '{}' ... ".format(os.path.normpath(path_new_dir)), end="")
         os.makedirs(os.path.normpath(path_new_dir))
         print("Done")
