@@ -72,13 +72,13 @@ def load_visualization(list_forecast_obj, station):
     tb.move_dir_content(path_last_img+"/etp/", path_archive_img+"/etp/")
     graph_etp.save(path_last_img)
 
-def load_forecasts(station, visu = True):
+def load_forecasts(station, visu):
     """
     Load and save forecast and visualisation and manage files for a station. 
     Parameters:
         station     station informations
                     type: `dict`
-        visu        for creating and saving visualization for APIs comparison as default (set False to ignore this option)
+        visu        for creating and saving visualization for APIs comparison as default
                     type: `Boolean`
     """
     # Get list of api id present in source file
@@ -92,9 +92,15 @@ def load_forecasts(station, visu = True):
     if visu :
         load_visualization(list_forecast_obj, station)
 
-def load_forecasts_all_stations():
+def load_forecasts_all_stations(visu=True):
+    """
+    Load and save forecast (and visualization if option is not desactivated) for all station in file source. 
+    Parameters:
+        visu        for creating and saving visualization for APIs comparison as default (set False to ignore this option)
+                    type: `Boolean`
+    """
     for station in var.stations_info:
-        load_forecasts(station)
+        load_forecasts(station, visu)
 
 # =============== main ==============
 

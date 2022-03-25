@@ -44,3 +44,5 @@ def move_dir_content(path_old_dir, path_new_dir):
         print("# Move file '{}' to archive ... ".format(f), end="")
         os.rename(old_file_path, new_file_path)
         print("Done") 
+
+# -------- usefull methods for dataframe creation --------- #

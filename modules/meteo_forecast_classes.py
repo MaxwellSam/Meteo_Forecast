@@ -22,7 +22,7 @@ import modules.toolbox as tb
 
 # ================== Forecast Classes ================== #
 
-class forecast:
+class Forecast:
     """
     Parent Class for Meteo Forecast data
 
@@ -37,16 +37,31 @@ class forecast:
                             type: `string` 
         response            response of API call 
                             type `response object`
+        dataframes          forecast Dataframes (forecast type as key, and dataframe as value)
+                            type: dict<`string`, `pandas Dataframe object`>
     Methods:
         fetch_forecast()                    Request API with URL generated and save response as attribute.  
         save_date_forecast()                Save initialization date corresponding to the meteo forecast date.
         load_api_info(api_id)               Get and add station info from source file as attribute.
         load_station_info(station_id)       Get and add API info from source file as attribute.
         generate_url()                      Generate and add URL for API call as attribute.
+        __create_dataframe()                Generate daily and hourly forecast dataframes. 
+        save(path)                          Save dataframe as csv.
         trace()                             Generate and return trace for visualization. 
         
 
-    """
+    """ 
+
+    def __init__(self):
+        """
+        Class initialisation
+        """
+        # save curent date
+        self.save_date_forecast()
+        # create dataframes
+        self.__create_dataframe()
+
+
     def fetch_forecast(self):
         """
         Request API with URL generated and save response as attribute. 
@@ -98,6 +113,54 @@ class forecast:
         """
         self.url = self.api_info["url_forecast"].replace("LAT", str(self.station_info["coordinates"]['lat'])).replace("LONG", str(self.station_info["coordinates"]['long']))
 
+    # ---------------- Dataframe ------------------
+
+    def __create_dataframe(self):
+        """
+        Create pandas dataframes with forecast data extracted from response.
+        """
+        self.dataframes = {}
+        # select info forecast availables
+        forecasts_availables = {k:v for k, v in self.api_info['parameters'].items() if v != None}
+        for forecast_type, parameters in forecasts_availables.items():
+            # Separete parameters available to parameters not available in the forecast data
+            parameters_availables = {k:v for k,v in parameters.items() if v != None}
+            parameters_not_availables = {k:v for k,v in parameters.items() if v == None}
+            # creat the dataframe for available parameters
+            df = pd.DataFrame(self.data[forecast_type])
+            df = df[parameters_availables.values()]
+            # rename columns
+            df = df.rename(columns={v:k for k, v in parameters_availables.items()})
+            # add columns not availables with NaN value
+            for param in parameters_not_availables.keys():
+                df[param] = np.NaN
+            # converte date to dateTime
+            df.date = pd.to_datetime(df.date)
+            # add forecast dataframe to dataframes 
+            self.dataframes[forecast_type] = df
+    
+    def save(self, path):
+        """
+        Save dataframes in csv format at the specific path as "{API_ID}_{DATE}_{FORECAST TYPE}.csv"
+
+        Parameters:
+            path        file path to save dataframes csv
+                        type: `string`
+        """
+        for forecast_type, df in self.dataframes.items():
+            # change date format
+            df.date = df.date.map(lambda d : d.strftime('%Y-%m-%d %H:%M'))
+            #  create file name
+            file_name = "{}_{}_{}_{}.csv".format(self.id_api, self.station_info['id'], self.date_init, forecast_type)
+            # save file 
+            print("# Save file '{}' ... ".format(file_name), end="") 
+            self.dataframes[forecast_type].to_csv(os.path.normpath(path+file_name), sep=',', na_rep="\\N", columns=var.config_info["data"]["columns"]["order"][forecast_type], index=False)
+            print("Done")
+
+
+
+
+    
     # ------------------ trace graph -----------------------
     
     def trace(self, param):
@@ -118,7 +181,7 @@ class forecast:
             return self.trace_etp()
 
 
-class MeteoConcept(forecast):
+class MeteoConcept(Forecast):
     """
     Class for MeteoConcept API forecast.
 
@@ -130,7 +193,7 @@ class MeteoConcept(forecast):
                         type: `string`
 
     Attributs:
-        df_daily        Daily forecast Dataframe
+        dataframes['daily']        Daily forecast Dataframe
                         type: `pandas Dataframe object`
     
     Methods: 
@@ -146,8 +209,8 @@ class MeteoConcept(forecast):
         """
         Class initialization
         """
-        # save curent date
-        self.save_date_forecast()
+        # # save curent date
+        # self.save_date_forecast()
         # load info
         self.load_api_info(self.id_api)
         self.load_station_info(station_id)
@@ -155,43 +218,25 @@ class MeteoConcept(forecast):
         self.generate_url()
         # fetch forecast data
         self.fetch_forecast()
-        # create dataframes
-        self.__create_dataframe()
+        # prepare data 
+        json_data = json.loads(self.response.text)
+        self.data = {'daily': json_data['forecast']}
+        # # create dataframes
+        # self.create_dataframe()
+        Forecast.__init__(self)
+        self.__complete_dataframes()
+
+
     
     # ------------------ dataframe -----------------------
 
-    def __create_dataframe(self):
+    def __complete_dataframes(self):
         """
         Creat daily forecast dataframe. 
         """
-        json_data = json.loads(self.response.text)
-        # select forecast data from json response and convert to dataframe
-        df = pd.DataFrame.from_dict(json_data["forecast"])
-        # select columns of interest
-        self.df_daily = df[self.api_info["parameters"]["daily"].values()]
-        # rename columns
-        self.df_daily = self.df_daily.rename(columns = dict((v, k) for k, v in self.api_info["parameters"]["daily"].items()))
-        # converte date to dateTime
-        self.df_daily.date = pd.to_datetime(self.df_daily.date)
-        # replace negative etp value by NaN value
-        self.df_daily[self.df_daily['etp'] < 0] = np.NaN
-
-    # ----------------- save dataframe -----------------------
-
-    def save(self, path):
-        """
-        Save dataframe in csv format at the specific path as "meteoConcept_{DATE}_{FORECAST TYPE}.csv"
-        """
-        # modify date time format
-        # print("\n",self.df_daily.dtypes, "\n")
-        self.df_daily.date = self.df_daily.date.map(lambda d : d.strftime('%Y-%m-%d %H:%M'))
-        # print(self.df_daily.date)
-        # generate file name
-        f_daily = "{}_{}_{}_daily.csv".format(self.id_api, self.station_info['id'], self.date_init)
-        # save file 
-        print("# Save file '{}' ... ".format(f_daily), end="") 
-        self.df_daily.to_csv(os.path.normpath(path+f_daily), sep=',', na_rep="\\N", columns=['date','temp_min', 'temp_max', 'etp', 'precip', 'proba_precip'], index=False)
-        print("Done")
+        # replace negative etp to NaN value
+        for df in self.dataframes.values():
+            df[df['etp'] < 0] = np.NaN
 
     # ------------------ trace graph -----------------------
 
@@ -201,13 +246,13 @@ class MeteoConcept(forecast):
         """
         # Prepare traces
         dict_1 = {
-            "x" : self.df_daily["date"],
-            "y" : self.df_daily["temp_min"],
+            "x" : self.dataframes['daily']["date"],
+            "y" : self.dataframes['daily']["temp_min"],
             "name" : self.id_api + " temp_min"
         }
         dict_2 = {
-            "x" : self.df_daily["date"],
-            "y" : self.df_daily["temp_max"],
+            "x" : self.dataframes['daily']["date"],
+            "y" : self.dataframes['daily']["temp_max"],
             "name" : self.id_api + " temp_max"
         }
         return dict_1, dict_2
@@ -218,8 +263,8 @@ class MeteoConcept(forecast):
         """
         # Prepare trace
         dict = {
-            "x" : self.df_daily["date"],
-            "y" : self.df_daily["precip"],
+            "x" : self.dataframes['daily']["date"],
+            "y" : self.dataframes['daily']["precip"],
             "name" : self.id_api + " precip"
         }
         return [dict]
@@ -228,8 +273,8 @@ class MeteoConcept(forecast):
         """
         Format etp data for graph trace.  
         """
-        df_d = self.df_daily.dropna(subset=['etp']) # .drop(self.df_daily.index[self.df_daily["etp"] < 0].tolist(), inplace=True)
-        # print("\n  meteoConcept\n", self.df_daily, "\n")
+        df_d = self.dataframes['daily'].dropna(subset=['etp']) # .drop(self.dataframes['daily'].index[self.dataframes['daily']["etp"] < 0].tolist(), inplace=True)
+        # print("\n  meteoConcept\n", self.dataframes['daily'], "\n")
         # Prepare tace
         dict = {
             "x" : df_d["date"],
@@ -240,7 +285,7 @@ class MeteoConcept(forecast):
 
     
 
-class OpenMeteo(forecast):
+class OpenMeteo(Forecast):
     """
     Class for OpenMeteo API forecast.
     
@@ -252,14 +297,10 @@ class OpenMeteo(forecast):
                         type: `string`
 
     Attributs:
-        df_daily        Daily forecast Dataframe
-                        type: `pandas Dataframe object`
-        sf_hourly       Hourly forecast Dataframe
-                        type: `pandas Dataframe object`
+        data            data formated for dataframe creation (forecast type as key, and data as value) 
+                        type: dict
     
     Methods: 
-        __create_dataframe()        Generate daily and hourly forecast dataframes. 
-        save(path)                  Save dataframe as csv.
         trace_temp()                Generate traces for visualization of temperature parameter
         trace_precip()              Generate traces for visualization of precipitation parameter
         trace_etp()                 Generate trace for visualization of evapotranspiration parameter  
@@ -270,8 +311,8 @@ class OpenMeteo(forecast):
         """
         Class initialization
         """
-        # save initialization date 
-        self.save_date_forecast()
+        # # save curent date
+        # self.save_date_forecast()
         # load info
         self.load_api_info(self.id_api)
         self.load_station_info(station_id)
@@ -279,61 +320,25 @@ class OpenMeteo(forecast):
         self.generate_url()
         # fetch forecast data
         self.fetch_forecast()
-        # creat dataframes
-        self.__create_dataframe()
-    
-    def add_daily_etp(self):
-        """
-        Calcul and add etp to daily data
-        """
-        # extract etp from hourly data
-        df_etp_hourly = self.df_hourly[['etp', 'date']]
-        # sum etp values for same days to create daily forecast
-        df_etp_daily = df_etp_hourly.resample('D', on='date').sum()
-        # add daily etp to daily dataframe
-        self.df_daily = self.df_daily.merge(df_etp_daily, on='date')
-    
-    def __create_dataframe(self):
-        """
-        Creat hourly and daily forecasts dataframes. 
-        """
+        # prepare data 
         json_data = json.loads(self.response.text)
-        # select forecast data from json response and convert to dataframe
-        self.df_daily = pd.DataFrame.from_dict(json_data["daily"])
-        self.df_hourly = pd.DataFrame.from_dict(json_data["hourly"])
-        # rename columns 
-        self.df_daily = self.df_daily.rename(columns = dict((v, k) for k, v in self.api_info["parameters"]["daily"].items()))
-        self.df_hourly = self.df_hourly.rename(columns = dict((v, k) for k, v in self.api_info["parameters"]["hourly"].items()))
-        # converte date to dateTime
-        self.df_daily.date = pd.to_datetime(self.df_daily.date)
-        self.df_hourly.date = pd.to_datetime(self.df_hourly.date)
-        # add etp daily
-        self.add_daily_etp()
-        # add proba_precip columns with NaN value
-        self.df_daily["proba_precip"] = np.NaN
-        # replace negative etp value by NaN value
-        self.df_daily[self.df_daily['etp'] < 0] = np.NaN
-        self.df_hourly[self.df_hourly['etp'] < 0] = np.NaN
+        self.data = {
+            'daily':json_data['daily'],
+            'hourly':json_data['hourly'] 
+            }
+        # # create dataframes
+        # self.create_dataframe()
+        Forecast.__init__(self)
+        self.__complete_dataframes()
     
-    def save(self, path):
+    def __complete_dataframes(self):
         """
-        Save dataframes in csv format at the specific path as "OpenMeteo_{DATE}_{FORECAST TYPE}.csv"
+        Creat daily forecast dataframe. 
         """
-        # change date format
-        self.df_daily.date = self.df_daily.date.map(lambda d : d.strftime('%Y-%m-%d %H:%M'))
-        self.df_hourly.date = self.df_hourly.date.map(lambda d : d.strftime('%Y-%m-%d %H:%M'))
-        # generate files name
-        f_daily = "{}_{}_{}_daily.csv".format(self.id_api, self.station_info['id'], self.date_init)
-        f_hourly = "{}_{}_{}_hourly.csv".format(self.id_api, self.station_info['id'], self.date_init)
-        # save files
-        ## daily
-        print("# Save file '{}' ... ".format(f_daily), end="") 
-        self.df_daily.to_csv(os.path.normpath(path+f_daily), sep=',', na_rep="\\N", columns=['date','temp_min', 'temp_max', 'etp', 'precip', 'proba_precip'], index=False)
-        print("Done")
-        ## daily
-        print("# Save file '{}' ... ".format(f_hourly), end="") 
-        self.df_hourly.to_csv(os.path.normpath(path+f_hourly), sep=',', na_rep="\\N", columns=['date','temp', 'etp', 'precip'], index=False)
-        print("Done")
+        # Calcul daily etp
+        df_etp = self.dataframes['hourly'][['etp', 'date']]
+        df_etp = df_etp.resample('D', on='date').sum()
+        self.dataframes['daily'].etp = df_etp.etp.values
     
     # ------------------ trace graph -----------------------
 
@@ -343,18 +348,18 @@ class OpenMeteo(forecast):
         """
         # Prepare traces 
         dict_1 = {
-            "x":self.df_daily["date"],
-            "y":self.df_daily["temp_min"],
+            "x":self.dataframes['daily']["date"],
+            "y":self.dataframes['daily']["temp_min"],
             "name":self.id_api + " temp_min"
         }
         dict_2 = {
-            "x":self.df_daily["date"],
-            "y":self.df_daily["temp_max"],
+            "x":self.dataframes['daily']["date"],
+            "y":self.dataframes['daily']["temp_max"],
             "name":self.id_api + " temp_max"
         }
         dict_3 = {
-            "x":self.df_hourly["date"],
-            "y":self.df_hourly["temp"],
+            "x":self.dataframes['hourly']["date"],
+            "y":self.dataframes['hourly']["temp"],
             "name":self.id_api + " temp (hourly)"
         }
         return dict_1, dict_2, dict_3
@@ -365,13 +370,13 @@ class OpenMeteo(forecast):
         """
         # Prepare traces
         dict_1 = {
-            "x" : self.df_daily["date"],
-            "y" : self.df_daily["precip"],
+            "x" : self.dataframes['daily']["date"],
+            "y" : self.dataframes['daily']["precip"],
             "name" : self.id_api + " precip (daily)"
         }
         dict_2 = {
-            "x" : self.df_hourly["date"],
-            "y" : self.df_hourly["precip"],
+            "x" : self.dataframes['hourly']["date"],
+            "y" : self.dataframes['hourly']["precip"],
             "name" : self.id_api + " precip (hourly)"
         }
         return dict_1, dict_2
@@ -380,10 +385,10 @@ class OpenMeteo(forecast):
         """
         Format etp data for graph trace.  
         """
-        df_d = self.df_daily.dropna(subset=['etp']) # drop(self.df_daily[self.df_daily['etp'] < 0].index, inplace=True)
-        # print("\n  openMeteo (daily)\n", self.df_daily, "\n")
-        # print("\n  openMeteo (hourly)\n", self.df_hourly, "\n")
-        df_h = self.df_hourly.dropna(subset=['etp']) #drop(self.df_hourly[self.df_hourly['etp'] < 0].index, inplace=True)
+        df_d = self.dataframes['daily'].dropna(subset=['etp']) # drop(self.dataframes['daily'][self.dataframes['daily']['etp'] < 0].index, inplace=True)
+        # print("\n  openMeteo (daily)\n", self.dataframes['daily'], "\n")
+        # print("\n  openMeteo (hourly)\n", self.dataframes['hourly'], "\n")
+        df_h = self.dataframes['hourly'].dropna(subset=['etp']) #drop(self.dataframes['hourly'][self.dataframes['hourly']['etp'] < 0].index, inplace=True)
         # Prepare traces 
         dict_1 = {
             "x" : df_h["date"],
@@ -397,72 +402,3 @@ class OpenMeteo(forecast):
         }
         return dict_1, dict_2
     
-
-
-# ================== graph Classes ================== #
-
-class lineChart:
-    """
-    Class for OpenMeteo API forecast.
-    
-    Child class of `Forecast` parent class. adapted to the structure 
-    of OpenMeteo API response to formate and save forecast data. 
-
-    Attributs:
-        df_daily        Daily forecast Dataframe
-                        type: `pandas Dataframe object`
-        sf_hourly       Hourly forecast Dataframe
-                        type: `pandas Dataframe object`
-    
-    Methods: 
-        __create_dataframe()        Generate daily and hourly forecast dataframes. 
-        save(path)                  Save dataframe as csv.
-        trace_temp()                Generate traces for visualization of temperature parameter
-        trace_precip()              Generate traces for visualization of precipitation parameter
-        trace_etp()                 Generate trace for visualization of evapotranspiration parameter  
-    """
-    def __init__(self, forecast_obj_list, param):
-        # get info forecast
-        self.date = forecast_obj_list[0].date_init
-        self.station_id = forecast_obj_list[0].station_info['id']
-        # save info
-        self.param = param
-        # init figure
-        self.fig = go.Figure(
-            layout=go.Layout(
-                title=go.layout.Title(text="Evolution of "+param)
-            )
-        )
-        # print(type(self.fig))
-        # print(self.fig)
-        
-        # for obj in forecast_obj_list:
-        #     self.fig = obj.trace(self.fig, param)
-
-        # generate traces
-        list_trace = []
-        for obj in forecast_obj_list:
-            list_trace.extend(obj.trace(param))
-
-        # add traces to figure
-        for trace in list_trace:
-            self.fig = self.fig.add_trace(go.Scatter(
-                x = trace["x"],
-                y = trace["y"],
-                name = trace["name"]
-            ))
-            print(trace["name"], trace["x"])
-
-        self.fig.update_xaxes(title_text='date')
-        self.fig.update_yaxes(title_text=param)
-    
-    def save(self, path):
-        f_name = "{}_{}_{}.png".format(self.param, self.station_id, self.date) 
-        path += "{}/{}".format(self.param, f_name) 
-        print("# Save file '{}' ... ".format(f_name), end="") 
-        self.fig.write_image(path)
-        print("Done")
-
-
-
-

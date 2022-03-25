@@ -56,8 +56,6 @@ class lineChart:
                 y = trace["y"],
                 name = trace["name"]
             ))
-            print(trace["name"], trace["x"])
-
         self.fig.update_xaxes(title_text='date')
         self.fig.update_yaxes(title_text=param)
     

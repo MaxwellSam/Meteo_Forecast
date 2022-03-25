@@ -1,0 +1,22 @@
+{
+    "data": {
+        "columns":{
+            "order":{
+                "daily":[
+                    "date", 
+                    "temp_min", 
+                    "temp_max", 
+                    "etp", 
+                    "precip", 
+                    "proba_precip"
+                ],
+                "hourly":[
+                    "date",
+                    "temp",
+                    "etp",
+                    "precip"
+                ]
+            }
+        }
+    }
+}

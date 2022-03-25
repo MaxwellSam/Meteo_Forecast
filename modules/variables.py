@@ -41,6 +41,14 @@ with open(api_file_path) as json_file:
 # get API list from dict 
 online_api_info = online_api_json["API"]
 
+## ----------- config ------------- ##
+
+# File path 
+config_file_path = wd+path_source_files+"config.json"
+# Load json file
+with open(config_file_path) as json_file:
+    config_info = json.load(json_file)
+
 # ===================== Save forecast data ===================== #
 
 # path_folder_csv = wd+"/Meteo_Forecast/Meteo_Forecast_program/forecast_data/"
