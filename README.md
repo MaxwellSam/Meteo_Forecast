@@ -24,6 +24,7 @@ The purpose was to find meteorological forecasts in open data online for automat
 | _ source_files 
 |   | _ online_api.json
 |   | _ stations.json
+|   | _ config.json
 |
 | _ meteo_forecast.py
 
