@@ -1,6 +1,6 @@
 """
-File: meteo_forecast.py
-Path: 
+File: meteo_forecast_classes.py
+Path: ./modules/meteo_forecast_classes.py
 Description: Fetching and data processing on Meteo Forecast
 Author: Sam Maxwell
 Date: 03/2022
@@ -8,16 +8,11 @@ Date: 03/2022
 
 # imports 
 
-from cmath import nan
-from operator import index
 import os 
 import json
 import pandas as pd
 from datetime import datetime
 import numpy as np
-
-import plotly.graph_objects as go
-from pyparsing import col 
 
 ## local imports
 
@@ -28,9 +23,33 @@ import modules.toolbox as tb
 # ================== Forecast Classes ================== #
 
 class forecast:
+    """
+    Parent Class for Meteo Forecast data
+
+    Attributes:
+        date_init           Class initialisation date (or date of forecast), format 'Y_m_d_H'
+                            type: `string`
+        api_info            API informations (id, name, link, url base, parameters) from source file 'source_files/online_api.json'
+                            type: `dict`
+        station_info        station informations (id, name, zone, localisation) from source file 'source_files/station.json'
+                            type: `dict`
+        url                 URL for API request with the station coordinates (longitude and latitude)
+                            type: `string` 
+        response            response of API call 
+                            type `response object`
+    Methods:
+        fetch_forecast()                    Request API with URL generated and save response as attribute.  
+        save_date_forecast()                Save initialization date corresponding to the meteo forecast date.
+        load_api_info(api_id)               Get and add station info from source file as attribute.
+        load_station_info(station_id)       Get and add API info from source file as attribute.
+        generate_url()                      Generate and add URL for API call as attribute.
+        trace()                             Generate and return trace for visualization. 
+        
+
+    """
     def fetch_forecast(self):
         """
-        Request API and get response. 
+        Request API with URL generated and save response as attribute. 
         """
         self.response = tb.fetch_url(self.url)
     
@@ -38,16 +57,20 @@ class forecast:
     # -------------------- save info -----------------------
 
     def save_date_forecast(self):
+        """
+        Save initialization date corresponding to the meteo forecast date.
+        """
         self.date_init = datetime.now().strftime("%Y_%m_%d_%H")
 
     # ---------------- Load infos methods ------------------
 
     def load_api_info(self, api_id):
         """
-        Load info API
+        Get and add station info from source file as attribute.
 
-        Param:
-            api_id : id api in json source file (./Meteo_Forecast/source_files/online_api.json) 
+        Parameters:
+            api_id      API ID in json source file (./Meteo_Forecast/source_files/online_api.json) 
+                        type: `string`
         """
         for api in var.online_api_info:
             if api["id"] == api_id:
@@ -56,10 +79,11 @@ class forecast:
     
     def load_station_info(self, station_id):
         """
-        Load info station
-
-        Param:
-            station_id : id station in json source file (./Meteo_Forecast/source_files/stations_json) 
+        Get and add API info from source file as attribute.
+        
+        Parameters:
+            station_id      id station in json source file (./Meteo_Forecast/source_files/stations_json) 
+                            type: `string`
         """
         for station in var.stations_info:
             if station["id"] == station_id:
@@ -70,7 +94,7 @@ class forecast:
 
     def generate_url(self):
         """
-        Generate url for requesting the meteo API 
+        Generate and add URL for API call as attribute.
         """
         self.url = self.api_info["url_forecast"].replace("LAT", str(self.station_info["coordinates"]['lat'])).replace("LONG", str(self.station_info["coordinates"]['long']))
 
@@ -78,7 +102,13 @@ class forecast:
     
     def trace(self, param):
         """
-        Creat trace for graph according to param (temp, precip or etp)
+        Generate and return trace for parameters visualization (temp, precip or etp)
+        Return:
+            self.trace_temp()
+            or                          Traces for the specific parameters.    
+            self.trace_precip()         type: `dict`
+            or
+            self.trace_etp()
         """
         if param == "temp":
             return self.trace_temp()
@@ -91,13 +121,32 @@ class forecast:
 class MeteoConcept(forecast):
     """
     Class for MeteoConcept API forecast.
-    Description: 
-        This class request the API Meteoconcept online and load meteoforecast as pandas Dataframe. 
-        This one could be save as csv and trace created for visualisation. 
+
+    Child class of `Forecast` parent class. adapted to the structure 
+    of MeteoConcept API response to formate and save forecast data. 
+
+    Initialisation parameters:
+        station_id      Station ID to get forecast
+                        type: `string`
+
+    Attributs:
+        df_daily        Daily forecast Dataframe
+                        type: `pandas Dataframe object`
+    
+    Methods: 
+        __create_dataframe()        Generate daily forecast dataframe. 
+        save(path)                  Save dataframe as csv.
+        trace_temp()                Generate traces for visualization of temperature parameter
+        trace_precip()              Generate traces for visualization of precipitation parameter
+        trace_etp()                 Generate trace for visualization of evapotranspiration parameter     
     """
     id_api = "meteoConcept"
 
     def __init__(self, station_id):
+        """
+        Class initialization
+        """
+        # save curent date
         self.save_date_forecast()
         # load info
         self.load_api_info(self.id_api)
@@ -107,11 +156,11 @@ class MeteoConcept(forecast):
         # fetch forecast data
         self.fetch_forecast()
         # create dataframes
-        self.create_dataframe()
+        self.__create_dataframe()
     
     # ------------------ dataframe -----------------------
 
-    def create_dataframe(self):
+    def __create_dataframe(self):
         """
         Creat daily forecast dataframe. 
         """
@@ -194,13 +243,33 @@ class MeteoConcept(forecast):
 class OpenMeteo(forecast):
     """
     Class for OpenMeteo API forecast.
-    Description: 
-        This class request the API OpenMeteo online and load meteo forecast as pandas Dataframe. 
-        This one could be save as csv and trace created for visualisation. 
+    
+    Child class of `Forecast` parent class. adapted to the structure 
+    of OpenMeteo API response to formate and save forecast data. 
+
+    Initialisation parameters:
+        station_id      Station ID to get forecast
+                        type: `string`
+
+    Attributs:
+        df_daily        Daily forecast Dataframe
+                        type: `pandas Dataframe object`
+        sf_hourly       Hourly forecast Dataframe
+                        type: `pandas Dataframe object`
+    
+    Methods: 
+        __create_dataframe()        Generate daily and hourly forecast dataframes. 
+        save(path)                  Save dataframe as csv.
+        trace_temp()                Generate traces for visualization of temperature parameter
+        trace_precip()              Generate traces for visualization of precipitation parameter
+        trace_etp()                 Generate trace for visualization of evapotranspiration parameter  
     """
     id_api = "openMeteo"
 
     def __init__(self, station_id):
+        """
+        Class initialization
+        """
         # save initialization date 
         self.save_date_forecast()
         # load info
@@ -211,7 +280,7 @@ class OpenMeteo(forecast):
         # fetch forecast data
         self.fetch_forecast()
         # creat dataframes
-        self.create_dataframe()
+        self.__create_dataframe()
     
     def add_daily_etp(self):
         """
@@ -224,7 +293,7 @@ class OpenMeteo(forecast):
         # add daily etp to daily dataframe
         self.df_daily = self.df_daily.merge(df_etp_daily, on='date')
     
-    def create_dataframe(self):
+    def __create_dataframe(self):
         """
         Creat hourly and daily forecasts dataframes. 
         """
@@ -333,7 +402,25 @@ class OpenMeteo(forecast):
 # ================== graph Classes ================== #
 
 class lineChart:
+    """
+    Class for OpenMeteo API forecast.
+    
+    Child class of `Forecast` parent class. adapted to the structure 
+    of OpenMeteo API response to formate and save forecast data. 
 
+    Attributs:
+        df_daily        Daily forecast Dataframe
+                        type: `pandas Dataframe object`
+        sf_hourly       Hourly forecast Dataframe
+                        type: `pandas Dataframe object`
+    
+    Methods: 
+        __create_dataframe()        Generate daily and hourly forecast dataframes. 
+        save(path)                  Save dataframe as csv.
+        trace_temp()                Generate traces for visualization of temperature parameter
+        trace_precip()              Generate traces for visualization of precipitation parameter
+        trace_etp()                 Generate trace for visualization of evapotranspiration parameter  
+    """
     def __init__(self, forecast_obj_list, param):
         # get info forecast
         self.date = forecast_obj_list[0].date_init
