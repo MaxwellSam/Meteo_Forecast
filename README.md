@@ -16,6 +16,7 @@ The purpose was to find meteorological forecasts in open data online for automat
 |   | _ last_forecasts
 |
 | _ modules
+|   | _ chart_classes.py
 |   | _ meteo_forecast_classes.py
 |   | _ toolbox.py
 |   | _ variables.py
@@ -51,8 +52,7 @@ The following packages need to be installed before running the program:
 
 ### Run the program 
 
-Be sure to be located at the project root `/Meteo_Forecast/.` and run the command line `python3 meteo_forecast.py`
-
+Be sure to be located at the project root `/Meteo_Forecast/.` and run the command line `python3 meteo_forecast.py`.
 
 
 
