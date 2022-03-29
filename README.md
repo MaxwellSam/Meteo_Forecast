@@ -4,7 +4,7 @@
 
 Research project in order to develope automatic meteo forecast data recovery for water flow prediction model. 
 
-The purpose was to find meteorological forecasts in open data online for automatic recovery for temperature, precipitation and evapotransiration.  
+The purpose was to find meteorological forecasts in open data online for automatic recovery of temperature, precipitation and evapotransiration.  
 
 ## Project architecture
 
