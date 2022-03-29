@@ -54,17 +54,17 @@ The following packages need to be installed before running the program:
 ### Setup virtual environment
 
 #### Installing pip and virtualenv
-
-`python3 -m pip install --upgrade pip`
-
-`python3 -m pip install virtualenv`
+```
+python3 -m pip install --upgrade pip
+python3 -m pip install virtualenv
+```
 
 #### Initialize a virtual environement
 
 In the project root `/Meteo_Forecast/.` run the command line `python3 -m venv .venv` or `python -m venv .venv`
 
 Activate the virtual environment with the command line:
-- on windows: `.venv/Script/activate`
+- on windows: ```.venv/Script/activate```
 - on MacOS and Uniux: `source .venv/bin/activate`
 
 to desactivate the virtual environment, use `desactivate` 
