@@ -7,7 +7,8 @@
                     "temp_min", 
                     "temp_max", 
                     "etp", 
-                    "precip", 
+                    "precip",
+                    "precip_max", 
                     "proba_precip"
                 ],
                 "hourly":[

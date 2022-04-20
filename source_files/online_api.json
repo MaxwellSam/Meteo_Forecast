@@ -9,6 +9,7 @@
             "parameters":{
                 "daily": {
                     "precip":"rr10",
+                    "precip_max":"rr1",
                     "proba_precip":"probarain",
                     "etp":"etp", 
                     "temp_min":"tmin", 
@@ -29,6 +30,7 @@
                 "daily":{
                     "precip":"precipitation_sum",
                     "proba_precip": null,
+                    "precip_max":null,
                     "etp": null,
                     "temp_max":"temperature_2m_max",
                     "temp_min":"temperature_2m_min", 
