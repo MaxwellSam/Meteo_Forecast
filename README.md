@@ -4,7 +4,7 @@
 
 Research project in order to develope automatic meteo forecast data recovery for water flow prediction model. 
 
-The purpose was to find meteorological forecasts in open data online for automatic recovery for temperature, precipitation and evapotransiration.  
+The purpose was to find meteorological forecasts in open data online for automatic recovery of temperature, precipitation and evapotransiration.  
 
 ## Project architecture
 
@@ -54,28 +54,48 @@ The following packages need to be installed before running the program:
 ### Setup virtual environment
 
 #### Installing pip and virtualenv
-
-`python3 -m pip install --upgrade pip`
-
-`python3 -m pip install virtualenv`
+```
+python3 -m pip install --upgrade pip
+python3 -m pip install virtualenv
+```
 
 #### Initialize a virtual environement
 
 In the project root `/Meteo_Forecast/.` run the command line `python3 -m venv .venv` or `python -m venv .venv`
 
 Activate the virtual environment with the command line:
-- on windows: `.venv/Script/activate`
-- on MacOS and Uniux: `source .venv/bin/activate`
+- on windows: 
+  ```
+  .venv/Script/activate
+  ```
+- on MacOS and Uniux: 
+  ```
+  source .venv/bin/activate
+  ```
 
 to desactivate the virtual environment, use `desactivate` 
 
 #### Install dependancies
 
-To install python dependancies, run the command line `pip3 install -r requirements.txt` or `pip install -r requirements.txt`
+To install python dependancies, run the command line 
+```
+pip3 install -r requirements.txt
+``` 
+or 
+```
+pip install -r requirements.txt
+```
 
 ### Run the program 
 
-Be sure to be located at the project root `/Meteo_Forecast/.` and run the command line `python3 meteo_forecast.py` or `python meteo_forecast.py`.
+Be sure to be located at the project root `/Meteo_Forecast/.` and run the command line 
+```
+python3 meteo_forecast.py
+``` 
+or 
+```
+python meteo_forecast.py
+```
 
 
 
